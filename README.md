@@ -10,7 +10,9 @@ A product-owned digital marketplace and distribution platform for original HOLBE
 - The catalog contains **demonstration records only** (`kind: "demonstration"`). They are clearly labelled, marked `noindex`, left out of the sitemap, and **cannot be purchased**.
 - **No payment provider, checkout, or protected file delivery is active.** No marketplace listing is live.
 - Legal pages (privacy, terms, refund) are **drafts** that need owner review before any sale.
-- No support email has been published yet (`SITE.supportEmail = null`).
+- Public contacts are configured: `hello@holbery.biz.id`, `support@holbery.biz.id`, WhatsApp `085712658316`.
+- Legal seller identity configured for display: **PT Waskita Cakrawarti Digital — Perseroan Perorangan**.
+- First real product prototype is registered as a hidden draft; it is not yet validated or purchasable.
 
 ## URLs
 
@@ -134,9 +136,9 @@ Optional plain variable: `SITE_URL` (canonical URL for SEO; defaults to `https:/
 
 ## Not yet implemented
 
-- A real product, validated and reviewed.
-- A verified sales-channel listing (Shopee, TikTok Shop, Etsy, etc.).
-- A published support email and seller identity.
+- Market validation and quality/rights review for the first real product prototype.
+- A verified sales-channel listing (Shopee, TikTok Shop, Etsy, etc.) or tested first-party checkout.
+- Owner/legal review of the draft policy pages.
 - Owner and legal review of the draft policy pages.
 - First-party checkout (e.g. Duitku) and protected delivery. Phase 4 is conditional and needs production credentials, signed webhooks, idempotency, and end-to-end tests (see `docs/07-payments-and-delivery.md`).
 - A custom domain.
