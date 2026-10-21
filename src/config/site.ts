@@ -12,15 +12,17 @@ export const SITE = {
   lang: 'id',
   /** Fallback canonical URL; overridden at runtime by the SITE_URL variable when set. */
   defaultUrl: 'https://holbery-marketplace.pages.dev',
-  /**
-   * Support contact is not yet published by the owner. Keep `null` until a
-   * real, monitored address exists — never invent one.
-   */
-  supportEmail: null as string | null,
+  /** Public business contacts supplied by the owner. Publish only channels that are monitored. */
+  generalEmail: 'hello@holbery.biz.id',
+  supportEmail: 'support@holbery.biz.id' as string | null,
+  whatsappNumber: '085712658316',
+  /** Legal operator; HOLBERY remains the consumer-facing brand. */
+  legalSellerName: 'PT Waskita Cakrawarti Digital',
+  legalSellerType: 'Perseroan Perorangan',
   /**
    * Demonstration records are shown (clearly labelled, never purchasable) so the
-   * storefront can be reviewed before real products exist. Set to `false` once
-   * real published products are in the catalog.
+   * storefront can be reviewed before real products exist. Set to false only
+   * after a real product is approved for publication.
    */
   showDemonstrationRecords: true,
   policiesLastUpdated: '2026-10-21'
