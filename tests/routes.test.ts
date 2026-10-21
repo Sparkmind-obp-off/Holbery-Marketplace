@@ -115,3 +115,51 @@ describe('robots and aliases', () => {
     expect(res.headers.get('location')).toBe('/tentang')
   })
 })
+
+describe('payment endpoints (gated, no secrets)', () => {
+  it('readiness reports missing config without exposing values', async () => {
+    const res = await app.request('/api/payments/readiness')
+    const body = (await res.json()) as { checkoutOpen: boolean; missing: string[] }
+    expect(body.checkoutOpen).toBe(false)
+    expect(body.missing).toContain('DUITKU_API_KEY')
+    expect(JSON.stringify(body)).not.toMatch(/apiKey|secret/i)
+  })
+
+  it('checkout rejects cross-origin requests (CSRF)', async () => {
+    const res = await app.request('/api/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evil.example' }, body: '{}' })
+    expect(res.status).toBe(403)
+  })
+
+  it('checkout is closed when runtime prerequisites are missing', async () => {
+    const res = await app.request('http://localhost/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'http://localhost' },
+      body: JSON.stringify({ slug: 'workbook-arus-kas-penjual-mikro', name: 'Budi', email: 'b@example.com', acceptTerms: true })
+    })
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ error: 'CHECKOUT_CLOSED' })
+  })
+
+  it('callback refuses to process when provider is not configured', async () => {
+    const res = await app.request('/api/payments/duitku/callback', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'merchantOrderId=x' })
+    expect(res.status).toBe(503)
+  })
+
+  it('order pages 404 without a valid capability', async () => {
+    expect((await app.request('/pesanan/ord_abcdefgh')).status).toBe(404)
+    expect((await app.request('/pesanan/ord_abcdefgh/unduh')).status).toBe(503)
+  })
+
+  it('Duitku origin is allowed only on product/order pages', async () => {
+    const product = await app.request('/produk/workbook-arus-kas-penjual-mikro')
+    expect(product.headers.get('content-security-policy')).toContain('https://app-prod.duitku.com')
+    const home = await app.request('/')
+    expect(home.headers.get('content-security-policy')).not.toContain('duitku')
+    expect(home.headers.get('content-security-policy')).toContain("frame-src 'none'")
+  })
+
+  it('demonstration product pages never load duitku.js', async () => {
+    const html = await (await app.request('/produk/workbook-arus-kas-penjual-mikro')).text()
+    expect(html).not.toContain('duitku.js')
+  })
+})

@@ -13,6 +13,11 @@ export function getPublicProducts(): Product[] {
   return CATALOG.filter((p) => isPubliclyVisible(p, { showDemonstrationRecords: SITE.showDemonstrationRecords }))
 }
 
+/** Internal lookup (includes non-public records) — used for fulfilling existing orders only. */
+export function getCatalogProductById(id: string): Product | undefined {
+  return CATALOG.find((p) => p.id === id)
+}
+
 export function getPublicProductBySlug(slug: string): Product | undefined {
   return getPublicProducts().find((p) => p.slug === slug)
 }

@@ -90,6 +90,20 @@ export const channelListingSchema = z.object({
 })
 export type ChannelListing = z.infer<typeof channelListingSchema>
 
+/**
+ * First-party checkout through Duitku POP (production).
+ * `deliverableKey` is the PRIVATE R2 object key of the paid file. It is never
+ * sent to the browser; the file is streamed only to the owner of a server-verified paid order.
+ */
+export const firstPartyCheckoutSchema = z.object({
+  provider: z.literal('duitku_pop'),
+  deliverableKey: z.string().regex(/^deliverables\/[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/, 'deliverableKey harus deliverables/<sku>/<file>'),
+  deliverableFileName: z.string().regex(/^[A-Za-z0-9._ -]{3,120}$/),
+  downloadLimit: z.number().int().min(1).max(20).default(5),
+  downloadWindowDays: z.number().int().min(1).max(90).default(30)
+})
+export type FirstPartyCheckout = z.infer<typeof firstPartyCheckoutSchema>
+
 export const productSchema = z
   .object({
     id: z.string().regex(/^prd_[a-z0-9]{4,}$/, 'ID harus berformat prd_xxxx'),
@@ -130,6 +144,7 @@ export const productSchema = z
     }),
     validationEvidence: z.array(validationEvidenceSchema),
     channelListings: z.array(channelListingSchema),
+    checkout: firstPartyCheckoutSchema.optional(),
     tags: z.array(z.string().min(2)).default([]),
     createdAt: isoDate,
     updatedAt: isoDate
@@ -155,7 +170,17 @@ export const productSchema = z
       if (p.kind === 'demonstration') issue(['availability'], 'Produk demonstrasi tidak boleh berstatus available')
       if (p.status !== 'published') issue(['availability'], 'Hanya produk published yang boleh available')
       const hasActive = p.channelListings.some((l) => l.status === 'active' && l.url && l.lastVerified)
-      if (!hasActive) issue(['channelListings'], 'Produk available wajib punya listing aktif dengan URL dan tanggal verifikasi')
+      const hasFirstParty = !!p.checkout && p.deliveryMethod === 'protected_download'
+      if (!hasActive && !hasFirstParty) {
+        issue(['channelListings'], 'Produk available wajib punya listing aktif terverifikasi atau checkout first-party dengan unduhan terlindungi')
+      }
+    }
+
+    if (p.checkout) {
+      if (p.kind === 'demonstration') issue(['checkout'], 'Produk demonstrasi tidak boleh memiliki checkout')
+      if (p.deliveryMethod !== 'protected_download') issue(['deliveryMethod'], 'Checkout first-party wajib memakai protected_download')
+      if (p.price.currency !== 'IDR') issue(['price', 'currency'], 'Duitku hanya untuk IDR')
+      if (p.price.amount < 10000) issue(['price', 'amount'], 'Harga minimum checkout Duitku Rp10.000')
     }
 
     // Active listings must carry a URL and verification date — never invented links.

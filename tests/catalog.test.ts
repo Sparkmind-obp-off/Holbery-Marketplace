@@ -37,12 +37,14 @@ describe('catalog data', () => {
     expect(CATEGORIES).toHaveLength(8)
   })
 
-  it('contains only demonstration records in this phase, none purchasable', () => {
+  it('has no purchasable record until the owner approves a real product', () => {
     for (const p of PRODUCTS) {
-      expect(p.kind).toBe('demonstration')
       expect(isPurchasable(p)).toBe(false)
-      expect(getDisplayState(p)).toBe('demonstration')
       expect(p.channelListings.some((l) => l.status === 'active')).toBe(false)
+      if (p.kind === 'demonstration') {
+        expect(getDisplayState(p)).toBe('demonstration')
+        expect(p.checkout).toBeUndefined()
+      }
     }
   })
 

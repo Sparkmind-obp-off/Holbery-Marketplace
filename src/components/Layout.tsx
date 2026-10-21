@@ -11,6 +11,10 @@ export interface PageMeta {
   type?: 'website' | 'product' | 'article'
   noindex?: boolean
   jsonLd?: Record<string, unknown>
+  /** Extra external scripts (e.g. Duitku POP production) — only on checkout/order pages. */
+  extraScripts?: string[]
+  /** Hide the global "demonstration preview" bar (e.g. on real order pages). */
+  hideNotice?: boolean
 }
 
 const NAV = [
@@ -55,6 +59,9 @@ export const Layout: FC<{ meta: PageMeta; currentPath: string; children?: Child 
             dangerouslySetInnerHTML={{ __html: JSON.stringify(meta.jsonLd).replace(/</g, '\\u003c') }}
           />
         )}
+        {(meta.extraScripts ?? []).map((src) => (
+          <script src={src} defer></script>
+        ))}
         <script src="/static/app.js" defer></script>
       </head>
       <body>
@@ -89,11 +96,13 @@ export const Layout: FC<{ meta: PageMeta; currentPath: string; children?: Child 
           </div>
         </header>
 
-        <div class="notice-bar" role="note">
-          <div class="container">
-            Pratinjau toko: produk yang tampil saat ini adalah <strong>data demonstrasi</strong> dan belum dapat dibeli.
+        {!meta.hideNotice && (
+          <div class="notice-bar" role="note">
+            <div class="container">
+              Pratinjau toko: produk berlabel <strong>data demonstrasi</strong> tidak dijual. Hanya produk berstatus “Tersedia” yang dapat dibeli.
+            </div>
           </div>
-        </div>
+        )}
 
         <main id="main-content" tabindex={-1}>
           {children}

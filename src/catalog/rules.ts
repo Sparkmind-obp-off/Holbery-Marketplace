@@ -30,16 +30,24 @@ export function getActiveListing(p: Product): ChannelListing | undefined {
  *   real product, published, available, both reviews passed, a real delivery
  *   method, and a verified active external listing URL.
  */
-export function isPurchasable(p: Product): boolean {
+function passesCatalogGate(p: Product): boolean {
   return (
     p.kind === 'product' &&
     p.status === 'published' &&
     p.availability === 'available' &&
     p.reviews.quality === 'passed' &&
     p.reviews.rights === 'passed' &&
-    p.deliveryMethod !== 'not_yet_available' &&
-    getActiveListing(p) !== undefined
+    p.deliveryMethod !== 'not_yet_available'
   )
+}
+
+/** Catalog-level eligibility for HOLBERY's own Duitku POP checkout (runtime readiness is checked separately). */
+export function isFirstPartyEligible(p: Product): boolean {
+  return passesCatalogGate(p) && !!p.checkout && p.deliveryMethod === 'protected_download' && p.price.currency === 'IDR'
+}
+
+export function isPurchasable(p: Product): boolean {
+  return passesCatalogGate(p) && (getActiveListing(p) !== undefined || isFirstPartyEligible(p))
 }
 
 export type DisplayState = 'demonstration' | 'available' | 'coming_soon' | 'paused' | 'not_available'

@@ -8,16 +8,53 @@ import {
   STATUS_LABEL,
   getActiveListing,
   getDisplayState,
+  isFirstPartyEligible,
   isPurchasable
 } from '../catalog/rules'
 import { formatPrice } from '../catalog/query'
 import { Breadcrumbs } from '../components/Common'
 import { ProductGrid, StatusBadge } from '../components/ProductCard'
 
-const PurchasePanel: FC<{ product: Product }> = ({ product }) => {
+export interface CheckoutContext {
+  /** True only when the product is first-party eligible AND runtime checkout prerequisites are met. */
+  open: boolean
+  termsVersion: string | null
+}
+
+const CheckoutForm: FC<{ product: Product; termsVersion: string | null }> = ({ product, termsVersion }) => (
+  <form class="checkout-form" id="checkout-form" data-slug={product.slug} novalidate>
+    <div class="field">
+      <label for="checkout-name">Nama</label>
+      <input id="checkout-name" name="name" type="text" required minlength={2} maxlength={60} autocomplete="name" />
+    </div>
+    <div class="field">
+      <label for="checkout-email">Email (untuk bukti &amp; akses pesanan)</label>
+      <input id="checkout-email" name="email" type="email" required maxlength={254} autocomplete="email" inputmode="email" />
+    </div>
+    <label class="check">
+      <input type="checkbox" name="acceptTerms" id="checkout-terms" required />
+      <span>
+        Saya menyetujui <a href="/syarat-ketentuan" target="_blank">Syarat</a>, <a href="/kebijakan-refund" target="_blank">Kebijakan Refund</a>, dan{' '}
+        <a href="/kebijakan-privasi" target="_blank">Kebijakan Privasi</a>
+        {termsVersion ? ` (${termsVersion})` : ''}.
+      </span>
+    </label>
+    <p class="form-error" id="checkout-error" role="alert" hidden></p>
+    <button type="submit" class="btn btn-primary btn-block" data-testid="buy-button" id="checkout-submit">
+      Bayar {formatPrice(product.price)}
+    </button>
+    <p class="purchase-help">
+      Pembayaran diproses aman oleh Duitku (production). Status pesanan hanya berubah setelah server HOLBERY memverifikasi pembayaran
+      dengan Duitku — bukan dari tampilan popup.
+    </p>
+  </form>
+)
+
+const PurchasePanel: FC<{ product: Product; checkout: CheckoutContext }> = ({ product, checkout }) => {
   const state = getDisplayState(product)
   const listing = getActiveListing(product)
   const purchasable = isPurchasable(product)
+  const firstParty = purchasable && checkout.open && isFirstPartyEligible(product)
   return (
     <aside class="purchase-panel" aria-labelledby="purchase-title" id="purchase-panel">
       <h2 id="purchase-title" class="visually-hidden">Harga dan ketersediaan</h2>
@@ -44,7 +81,9 @@ const PurchasePanel: FC<{ product: Product }> = ({ product }) => {
         </div>
       </dl>
 
-      {purchasable && listing?.url ? (
+      {firstParty ? (
+        <CheckoutForm product={product} termsVersion={checkout.termsVersion} />
+      ) : purchasable && listing?.url ? (
         <>
           <a class="btn btn-primary btn-block" href={listing.url} rel="noopener noreferrer" target="_blank" data-testid="buy-button">
             Beli di {listing.label}
@@ -62,7 +101,9 @@ const PurchasePanel: FC<{ product: Product }> = ({ product }) => {
               ? 'Ini adalah data demonstrasi untuk pratinjau toko. Produk belum divalidasi dan tidak dijual.'
               : state === 'paused'
                 ? 'Penjualan produk ini sedang dijeda.'
-                : 'Produk ini belum tersedia untuk dibeli. Tidak ada pembayaran yang dapat dilakukan.'}
+                : purchasable
+                  ? 'Checkout sedang ditutup sementara. Tidak ada pembayaran yang dapat dilakukan saat ini.'
+                  : 'Produk ini belum tersedia untuk dibeli. Tidak ada pembayaran yang dapat dilakukan.'}
           </p>
           <a href="/kontak" class="btn btn-secondary btn-block">Tanyakan produk ini</a>
         </div>
@@ -71,7 +112,7 @@ const PurchasePanel: FC<{ product: Product }> = ({ product }) => {
   )
 }
 
-export const ProductDetailPage: FC<{ product: Product; related: Product[] }> = ({ product, related }) => {
+export const ProductDetailPage: FC<{ product: Product; related: Product[]; checkout: CheckoutContext }> = ({ product, related, checkout }) => {
   const category = getCategory(product.category)
   const preview = product.previewImages[0]
   return (
@@ -114,7 +155,7 @@ export const ProductDetailPage: FC<{ product: Product; related: Product[] }> = (
             )}
             <h1 class="product-title">{product.title}</h1>
             <p class="product-lead">{product.shortDescription}</p>
-            <PurchasePanel product={product} />
+            <PurchasePanel product={product} checkout={checkout} />
           </div>
         </div>
 

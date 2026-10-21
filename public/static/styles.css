@@ -297,3 +297,19 @@ label { font-size: .8rem; font-weight: 600; color: var(--ink-2); display: block;
 @media print {
   .site-header, .site-footer, .notice-bar, .filter-bar { display: none; }
 }
+
+/* ---------- Checkout & order ---------- */
+.checkout-form { display: grid; gap: .85rem; }
+.checkout-form .field { min-width: 0; }
+.check { display: flex; gap: .6rem; align-items: flex-start; font-size: .85rem; font-weight: 400; color: var(--ink-2); letter-spacing: 0; }
+.check input { margin-top: .25rem; width: 18px; height: 18px; flex: none; accent-color: var(--ink); }
+input[type='email'] { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--radius-sm); padding: .6rem .8rem; min-height: 44px; width: 100%; }
+.form-error { background: #fbeceb; color: #7a2a20; border: 1px solid #efcbc6; padding: .6rem .8rem; border-radius: var(--radius-sm); font-size: .88rem; margin: 0; }
+.btn[disabled] { opacity: .6; cursor: progress; }
+.alert-success { background: var(--accent-soft); color: var(--accent); border-color: #c9dfd3; }
+.alert-warn { background: var(--warn-bg); color: var(--warn-ink); border-color: #ecd9ae; }
+.order-summary { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: .5rem 1.25rem; margin-bottom: 1.5rem; }
+.download-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.download-box h2 { font-family: var(--font-display); font-size: 1.3rem; }
+.muted { color: var(--muted); font-size: .9rem; }
+.order-help { margin-top: 2rem; }

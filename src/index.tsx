@@ -16,34 +16,45 @@ import {
 import { Layout, type PageMeta } from './components/Layout'
 import { CategoryPage, HomePage, ProductListPage } from './pages/catalog'
 import { ProductDetailPage } from './pages/product'
+import { commerce } from './routes/commerce'
+import { OrderPage } from './pages/order'
+import { checkoutBlockers, type Bindings } from './payments/config'
+import { getOwnedOrder } from './payments/orders'
+import { appOrigin, popScriptUrl } from './payments/duitku'
+import { getCatalogProductById, isFirstPartyEligible } from './catalog'
 import { AboutPage, ContactPage, ErrorPage, FaqPage, FAQS, NotFoundPage, PrivacyPage, RefundPage, TermsPage } from './pages/content'
 
-export type Bindings = {
-  /** Public canonical URL (plain variable, not a secret). */
-  SITE_URL?: string
-}
+export type { Bindings }
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-app.use(
-  '*',
-  secureHeaders({
+/** Pages that embed Duitku POP need its origin for script + iframe; everything else stays strict 'self'. */
+const PAYMENT_PATH = /^\/(produk\/[a-z0-9-]+|pesanan\/ord_[a-z0-9]+)$/
+app.use('*', async (c, next) => {
+  const path = new URL(c.req.url).pathname
+  const env = c.env?.DUITKU_ENV === 'sandbox' ? 'sandbox' : 'production'
+  const pay = PAYMENT_PATH.test(path) ? [appOrigin(env)] : []
+  return secureHeaders({
     contentSecurityPolicy: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", ...pay],
+      // duitku.js positions its iframe via element.style (CSSOM), which CSP does not block.
       styleSrc: ["'self'"],
       imgSrc: ["'self'", 'data:'],
       fontSrc: ["'self'"],
       connectSrc: ["'self'"],
+      frameSrc: pay.length ? pay : ["'none'"],
       frameAncestors: ["'none'"],
       baseUri: ["'self'"],
       formAction: ["'self'"],
       objectSrc: ["'none'"]
     },
     referrerPolicy: 'strict-origin-when-cross-origin',
-    permissionsPolicy: { camera: [], microphone: [], geolocation: [], payment: [] }
-  })
-)
+    permissionsPolicy: { camera: [], microphone: [], geolocation: [], payment: pay.length ? ['self', ...pay] : [] }
+  })(c, next)
+})
+
+app.route('/', commerce)
 
 function siteUrl(c: Context<{ Bindings: Bindings }>): string {
   const configured = c.env?.SITE_URL
@@ -58,7 +69,7 @@ function render(c: Context<{ Bindings: Bindings }>, meta: Omit<PageMeta, 'siteUr
       {body}
     </Layout>
   )
-  c.header('Cache-Control', 'public, max-age=300')
+  if (!c.res.headers.get('Cache-Control')) c.header('Cache-Control', 'public, max-age=300')
   return c.html('<!doctype html>' + html.toString(), status)
 }
 
@@ -111,6 +122,8 @@ app.get('/produk/:slug', (c) => {
     .sort((a, b) => Number(b.category === product.category) - Number(a.category === product.category))
     .slice(0, 3)
   const listing = getActiveListing(product)
+  const checkoutOpen = isFirstPartyEligible(product) && checkoutBlockers(c.env ?? {}).length === 0
+  const duitkuEnv = c.env?.DUITKU_ENV === 'sandbox' ? 'sandbox' : 'production'
   return render(
     c,
     {
@@ -120,6 +133,7 @@ app.get('/produk/:slug', (c) => {
       type: 'product',
       // Demonstration records must not be indexed as if they were real offers.
       noindex: product.kind === 'demonstration',
+      extraScripts: checkoutOpen ? [popScriptUrl(duitkuEnv)] : undefined,
       jsonLd:
         product.kind === 'product'
           ? {
@@ -143,7 +157,7 @@ app.get('/produk/:slug', (c) => {
             }
           : undefined
     },
-    <ProductDetailPage product={product} related={related} />
+    <ProductDetailPage product={product} related={related} checkout={{ open: checkoutOpen, termsVersion: c.env?.TERMS_VERSION ?? null }} />
   )
 })
 
@@ -161,6 +175,29 @@ app.get('/kategori/:slug', (c) => {
       noindex: Boolean(query.q || query.sort !== 'relevance')
     },
     <CategoryPage category={category} products={products} query={query} />
+  )
+})
+
+app.get('/pesanan/:id', async (c) => {
+  c.header('X-Robots-Tag', 'noindex, nofollow')
+  if (!c.env?.DB) return c.notFound()
+  const token = c.req.query('t') || ''
+  const order = await getOwnedOrder(c.env.DB, c.req.param('id'), token)
+  if (!order) return c.notFound()
+  const product = getCatalogProductById(order.product_id)
+  const duitkuEnv = c.env.DUITKU_ENV === 'sandbox' ? 'sandbox' : 'production'
+  c.header('Cache-Control', 'no-store')
+  c.header('Referrer-Policy', 'no-referrer')
+  return render(
+    c,
+    {
+      title: `Pesanan ${order.merchant_order_id}`,
+      description: 'Status pesanan HOLBERY Marketplace.',
+      noindex: true,
+      hideNotice: true,
+      extraScripts: order.status === 'PENDING_PAYMENT' && order.provider_reference ? [popScriptUrl(duitkuEnv)] : undefined
+    },
+    <OrderPage order={order} token={token} supportContact={c.env.SUPPORT_CONTACT ?? null} productSlug={product?.slug ?? null} />
   )
 })
 
@@ -235,7 +272,7 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
 app.get('/robots.txt', (c) => {
   c.header('Content-Type', 'text/plain; charset=utf-8')
-  return c.body(`User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${siteUrl(c)}/sitemap.xml\n`)
+  return c.body(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /pesanan/\n\nSitemap: ${siteUrl(c)}/sitemap.xml\n`)
 })
 
 app.get('/sitemap.xml', (c) => {
