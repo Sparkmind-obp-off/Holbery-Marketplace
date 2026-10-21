@@ -17,3 +17,6 @@ Status: Accepted (2026-10-21). Server-rendered Hono JSX on Cloudflare Pages Func
 
 ## ADR-006: Purchase gate
 Status: Accepted (2026-10-21). One function, `isPurchasable()` in `src/catalog/rules.ts`, decides whether a buy CTA renders. It requires a real published product, passed reviews, a real delivery method, and a verified active `https://` listing. The schema rejects contradictory records. Demonstration records can never be purchasable.
+
+## ADR-007: First-party Duitku POP checkout in Marketplace
+Status: Accepted (2026-10-21), on the owner's explicit instruction to activate Duitku POP Production for Marketplace. It reuses the parent Commerce payment contract (same HMAC-SHA256 signatures, inquiry corroboration, and "browser events are UX only" rule) without importing its code, data, or D1. Marketplace has its own D1 (`holbery-marketplace-production`), private R2 bucket, and Pages secrets, all separate from `webapp-4`. An order becomes PAID only through `applyInquiry()` after the provider's `transactionStatus` agrees with the order on reference and amount. Checkout opens only when a catalog product passes every gate AND runtime prerequisites are set (`/api/payments/readiness`).

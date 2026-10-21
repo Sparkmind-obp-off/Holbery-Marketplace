@@ -1,6 +1,6 @@
 # Payments and Digital Delivery
 
-Status: Design notes only. No payment or delivery integration is declared live.
+Status (2026-10-21): Duitku POP Production is IMPLEMENTED and DEPLOYED with checkout **closed by gates**. No invoice has been created and no real payment has occurred, so payment is NOT production-verified. Implementation: `src/payments/`, `src/routes/commerce.tsx`, `migrations/0001_orders.sql`. Tests: `tests/payments.test.ts`.
 
 ## Launch principle
 Prefer checkout and fulfillment offered by a verified sales channel when that channel explicitly permits the product type. Confirm current seller rules for digital goods, file delivery, service listings, refunds, and prohibited content before publishing.

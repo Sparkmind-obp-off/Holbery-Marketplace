@@ -8,15 +8,20 @@ Use [`MASTER-SYSTEM-PROMPT-V3.md`](./MASTER-SYSTEM-PROMPT-V3.md) as the current 
 
 ## Project status
 
-**Phase 1 — static-first storefront: implemented and deployed as a preview.**
+**Phase 1 storefront: deployed. Phase 4 first-party checkout (Duitku POP Production): implemented, deployed, and gated.**
 
-- The storefront, catalog, validation rules, and policy pages work.
-- The catalog contains **demonstration records only** (`kind: "demonstration"`). They are clearly labelled, marked `noindex`, left out of the sitemap, and **cannot be purchased**.
-- **No payment provider, checkout, or protected file delivery is active.** No marketplace listing is live.
-- Legal pages (privacy, terms, refund) are **drafts** that need owner review before any sale.
-- Public contacts are configured: `hello@holbery.biz.id`, `support@holbery.biz.id`, WhatsApp `085712658316`.
-- Legal seller identity configured for display: **PT Waskita Cakrawarti Digital — Perseroan Perorangan**.
-- First real product prototype is registered as a hidden draft; it is not yet validated or purchasable.
+| Item | Status |
+|---|---|
+| Storefront, catalog, validation | IMPLEMENTED · DEPLOYED |
+| Duitku production credentials | Stored as encrypted Pages secrets. Read-only `getpaymentmethod` returned HTTP 200 / `00` / 18 methods (2026-10-21) |
+| D1 `holbery-marketplace-production` | Migrated (orders, order_events, rate_limits) · 0 orders |
+| R2 `holbery-marketplace-deliverables` | Private bucket · no public URL · empty |
+| Checkout runtime | **CLOSED**: `SUPPORT_CONTACT` is empty and no product passes the purchase gate |
+| Real paid transaction | **NOT STARTED**: no invoice has been created and no payment has been made |
+
+- The catalog contains demonstration records plus one real **draft** product (`HB-OPS-CONSIGN-001`, not public). None of them is purchasable.
+- Legal pages are drafts (`TERMS_VERSION=HBM-TERMS-2026-10-DRAFT`) and need owner review.
+- Do not call payment "live" or "production verified" until a genuine buyer payment is verified server-side and delivered (see `docs/07-payments-and-delivery.md` → Launch proof).
 
 ## URLs
 
@@ -25,6 +30,7 @@ Use [`MASTER-SYSTEM-PROMPT-V3.md`](./MASTER-SYSTEM-PROMPT-V3.md) as the current 
 | Production (Cloudflare Pages, project `holbery-marketplace`) | https://holbery-marketplace.pages.dev |
 | GitHub | https://github.com/Sparkmind-obp-off/Holbery-Marketplace |
 | Public catalog JSON | `/api/products` (read-only, public fields only) |
+| Payment readiness | `/api/payments/readiness` (names of missing prerequisites only, no values) |
 | Health | `/api/health` |
 
 ## Tech stack
@@ -34,7 +40,8 @@ Use [`MASTER-SYSTEM-PROMPT-V3.md`](./MASTER-SYSTEM-PROMPT-V3.md) as the current 
 - **Zod** for catalog schema validation
 - **Vitest** for tests, **TypeScript** in strict mode
 - Plain CSS design system. No CDN, web fonts, trackers, or third-party scripts. A strict CSP (`default-src 'self'`) is enforced.
-- No D1, KV, or R2. The current scope doesn't need them (ADR-003).
+- **Cloudflare D1** for orders, the audit trail, and rate limits. **Cloudflare R2 (private)** for paid deliverables.
+- **Duitku POP (production)** for first-party payments. `duitku.js` loads only on product and order pages that can actually pay, and per-page CSP allows `app-prod.duitku.com` only there.
 
 ## Routes
 
@@ -51,6 +58,11 @@ Use [`MASTER-SYSTEM-PROMPT-V3.md`](./MASTER-SYSTEM-PROMPT-V3.md) as the current 
 | `/syarat-ketentuan` | Terms of Service (draft) |
 | `/kebijakan-refund` | Refund & Cancellation Policy (draft) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
+| `POST /api/checkout` | Create order + Duitku invoice (same-origin, rate-limited, gated) |
+| `POST /api/payments/duitku/callback` | Duitku server notification (HMAC verified, then inquiry) |
+| `/pesanan/:id?t=<token>` | Private order page (capability token, `no-store`, `no-referrer`, noindex) |
+| `POST /api/orders/:id/reconcile?t=` | Buyer-triggered status check via Duitku `transactionStatus` |
+| `/pesanan/:id/unduh?t=` | Protected download (PAID only, count + time limited, streamed from private R2) |
 | `/about`, `/products`, `/contact`, `/support`, `/privacy`, `/terms`, `/refund` | 301 → Indonesian canonical paths |
 
 Sort keys: `relevance`, `newest`, `price-asc`, `price-desc`, `title-asc`. Invalid input is ignored, and search terms are capped at 80 characters.
@@ -100,6 +112,29 @@ Fields: `id`, `sku`, `slug`, `kind`, `title`, `category`, `shortDescription`, `f
 4. Add the listing as `status: "active"` with `url` and `lastVerified`. Set `status: "published"` and `availability: "available"`.
 5. Run `npm run check`. Once real products exist, set `SITE.showDemonstrationRecords = false`.
 
+## First-party checkout (Duitku POP Production)
+
+Flow, following the official docs (https://docs.duitku.com/pop/id/) and the parent Commerce contract:
+
+1. The buyer submits name, email, and terms acceptance. The server validates them, applies a rate limit, and checks that the product is first-party eligible.
+2. The server creates the order (`PENDING_PAYMENT`) with the **catalog price**. The browser never sends an amount.
+3. The server calls `createInvoice`, signed with `HMAC_SHA256(merchantCode+timestamp, apiKey)`. It verifies that the response `paymentUrl` origin is `app-prod.duitku.com`, then stores the reference.
+4. The browser calls `checkout.process(reference)`. POP events only redirect the buyer to the order page and **never change state**.
+5. Duitku sends the callback. The server verifies `HMAC_SHA256(merchantCode+amount+merchantOrderId, apiKey)`, then calls **`transactionStatus`**, because the callback HMAC does not cover `resultCode`. An order becomes `PAID` only when order, amount, and reference all match. Callbacks are idempotent, and a DB trigger forbids reverting a PAID order.
+6. The order page offers a download from private R2 (default 5 downloads within 30 days).
+
+**Opening checkout for a real product** (each step needs owner approval):
+
+1. Finish validation, QA, and the rights review. Set the product to `status: published`, `availability: available`, `deliveryMethod: protected_download`, and add `checkout: { provider: 'duitku_pop', deliverableKey: 'deliverables/<SKU>/<file>', deliverableFileName }`.
+2. Upload the file privately: `npx wrangler r2 object put holbery-marketplace-deliverables/deliverables/<SKU>/<file> --file <path> --remote`.
+3. Set `SUPPORT_CONTACT` (a monitored channel) and a final `TERMS_VERSION` in `wrangler.jsonc`, then build and deploy.
+4. Confirm `/api/payments/readiness` shows `checkoutOpen: true`.
+5. First real buyer: verify callback → inquiry → `PAID` → download, then record redacted evidence.
+
+Kill switch: set `CHECKOUT_ENABLED` to `"false"` and redeploy.
+
+**Credential rotation:** the API key was shared in chat, so rotate it in the Duitku merchant portal, then run `npx wrangler pages secret put DUITKU_API_KEY --project-name holbery-marketplace` and redeploy.
+
 ## Development
 
 Requirements: Node.js 20+ and npm.
@@ -127,7 +162,7 @@ npm run build
 npx wrangler pages deploy dist --project-name holbery-marketplace --branch main
 ```
 
-Optional plain variable: `SITE_URL` (canonical URL for SEO; defaults to `https://holbery-marketplace.pages.dev`). See `.env.example`. No secrets are needed right now.
+Plain vars live in `wrangler.jsonc` (`SITE_URL`, `DUITKU_ENV`, `CHECKOUT_ENABLED`, `TERMS_VERSION`, `SUPPORT_CONTACT`). Secrets are encrypted Pages secrets (`DUITKU_MERCHANT_CODE`, `DUITKU_API_KEY`) and are never committed. For local dev, put test values in `.dev.vars` (gitignored). D1 migrations: `npx wrangler d1 migrations apply holbery-marketplace-production --remote`.
 
 **Rollback:** in the Cloudflare dashboard, go to Pages → `holbery-marketplace` → Deployments and roll back to a previous deployment. Or redeploy a known-good commit.
 
@@ -144,7 +179,9 @@ Optional plain variable: `SITE_URL` (canonical URL for SEO; defaults to `https:/
 - A verified sales-channel listing (Shopee, TikTok Shop, Etsy, etc.) or tested first-party checkout.
 - Owner/legal review of the draft policy pages.
 - Owner and legal review of the draft policy pages.
-- First-party checkout (e.g. Duitku) and protected delivery. Phase 4 is conditional and needs production credentials, signed webhooks, idempotency, and end-to-end tests (see `docs/07-payments-and-delivery.md`).
+- A real paid Duitku transaction (requires a genuine buyer and an approved product).
+- Order notification emails (buyers currently rely on the private order link).
+- An operator view for orders and refunds (for now, use `wrangler d1 execute` with read-only queries).
 - A custom domain.
 - Privacy-conscious analytics, if needed.
 
