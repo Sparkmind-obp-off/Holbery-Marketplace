@@ -163,3 +163,10 @@ describe('payment endpoints (gated, no secrets)', () => {
     expect(html).not.toContain('duitku.js')
   })
 })
+
+describe('order page privacy headers', () => {
+  it('uses no-referrer on /pesanan/* paths', async () => {
+    const res = await app.request('/pesanan/ord_abcdefgh')
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer')
+  })
+})

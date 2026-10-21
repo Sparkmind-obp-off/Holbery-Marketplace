@@ -49,7 +49,8 @@ app.use('*', async (c, next) => {
       formAction: ["'self'"],
       objectSrc: ["'none'"]
     },
-    referrerPolicy: 'strict-origin-when-cross-origin',
+    // Order pages carry a capability token in the URL → never leak it via Referer.
+    referrerPolicy: path.startsWith('/pesanan/') ? 'no-referrer' : 'strict-origin-when-cross-origin',
     permissionsPolicy: { camera: [], microphone: [], geolocation: [], payment: pay.length ? ['self', ...pay] : [] }
   })(c, next)
 })

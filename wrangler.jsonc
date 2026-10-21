@@ -23,8 +23,9 @@
   "vars": {
     "SITE_URL": "https://holbery-marketplace.pages.dev",
     "DUITKU_ENV": "production",
-    // Kill switch. Stays "false" until the owner approves a real product, policies and support contact.
-    "CHECKOUT_ENABLED": "false",
+    // Kill switch ("true"/"false"). Even when "true", only catalog products that pass every gate (published,
+    // reviews passed, protected_download + private R2 file) can be bought, and SUPPORT_CONTACT must be set.
+    "CHECKOUT_ENABLED": "true",
     "TERMS_VERSION": "HBM-TERMS-2026-10-DRAFT",
     "SUPPORT_CONTACT": ""
   }
