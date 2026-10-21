@@ -9,12 +9,12 @@ A phase is complete only when its acceptance criteria have been demonstrated.
 - [ ] Confirm repository visibility and branch protection.
 
 ## Phase 1 — Static-first storefront
-- [ ] Inspect repository files and select stack based on evidence.
-- [ ] Build responsive home, category, product detail, support, and policy pages.
-- [ ] Load catalog from validated structured data.
-- [ ] Add catalog schema checks and tests.
-- [ ] Complete accessibility and responsive checks.
-- [ ] Deploy preview without checkout claims.
+- [x] Inspect repository files and select stack based on evidence (Hono + Vite + Cloudflare Pages, 2026-10-21).
+- [x] Build responsive home, category, product detail, support, and policy pages.
+- [x] Load catalog from validated structured data.
+- [x] Add catalog schema checks and tests (53 automated tests).
+- [ ] Complete accessibility and responsive checks (automated headless checks done: skip link, mobile menu, no horizontal overflow at 390px; manual screen-reader audit pending).
+- [x] Deploy preview without checkout claims (https://holbery-marketplace.pages.dev, demonstration data only).
 
 ## Phase 2 — First validated products
 - [ ] Collect evidence and select one narrow product.
