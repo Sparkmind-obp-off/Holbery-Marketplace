@@ -4,7 +4,7 @@ A product-owned digital marketplace and distribution platform for original HOLBE
 
 ## AI operating instructions
 
-Use [`MASTER-SYSTEM-PROMPT.md`](./MASTER-SYSTEM-PROMPT.md) as the operating prompt for research, product creation, validation, engineering, and release work. It follows the repository's evidence, security, product-purchase, and owner-approval gates.
+Use [`MASTER-SYSTEM-PROMPT-V2.md`](./MASTER-SYSTEM-PROMPT-V2.md) as the current operating prompt. V2 audits the existing product and canonical parent Commerce path before recommending new product or payment work. [`MASTER-SYSTEM-PROMPT.md`](./MASTER-SYSTEM-PROMPT.md) is retained as the executed v1 baseline.
 
 ## Project status
 
