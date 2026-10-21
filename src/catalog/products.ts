@@ -258,22 +258,22 @@ export const PRODUCTS: Product[] = [
     updatedAt: '2026-10-21'
   },
   {
-    id: 'prd_demo0006',
-    sku: 'HB-DEMO-IS-001',
+    id: 'prd_hbconsign001',
+    sku: 'HB-OPS-CONSIGN-001',
     slug: 'workbook-konsinyasi-multi-outlet',
-    kind: 'demonstration',
-    title: 'Workbook Konsinyasi Multi-Outlet',
+    kind: 'product',
+    title: 'Workbook Konsinyasi Multi-Outlet & Setoran Warung',
     category: 'solusi-industri',
     shortDescription:
-      'Contoh workbook untuk mencatat titip jual di beberapa toko, menghitung barang terjual, dan menyiapkan rekap setoran.',
+      'Workbook untuk mencatat stok titipan, penjualan, retur, dan setoran dari beberapa warung atau toko.',
     fullDescription: [
-      'Produsen yang menitipkan barang di banyak warung atau toko sering kehilangan jejak stok dan setoran. Workbook ini menyusun pencatatan per outlet dan rekap penagihan.',
-      'Catatan: halaman ini adalah data demonstrasi berdasarkan hipotesis produk yang belum divalidasi.'
+      'Workbook ini membantu menyatukan pencatatan pengiriman, penjualan, retur, setoran, dan rekonsiliasi per outlet dalam satu file. Versi prototipe telah dibuat; validasi pasar dan uji kompatibilitas masih berlangsung.',
+      'Status: produk dalam tahap draf dan belum tersedia untuk dibeli. Data contoh di workbook bersifat fiktif.'
     ],
-    targetCustomer: 'Produsen makanan ringan dan kerajinan yang menitipkan barang di beberapa outlet.',
-    problemSolved: 'Stok titipan dan setoran dari banyak outlet sulit direkap dan rawan selisih.',
+    targetCustomer: 'Produsen atau penjual kecil yang menitipkan produk di beberapa warung atau toko.',
+    problemSolved: 'Pengiriman stok, penjualan, retur, dan setoran outlet sulit dicocokkan ketika dicatat di tempat terpisah.',
     deliverables: [
-      { name: 'Workbook konsinyasi', format: 'XLSX / Google Sheets', description: 'Sheet per outlet, kunjungan, dan rekap setoran.' }
+      { name: 'Workbook konsinyasi', format: 'XLSX / Google Sheets', description: 'Sembilan tab untuk master produk/outlet, pengiriman, penjualan/retur, setoran, dashboard, dan rekonsiliasi.' }
     ],
     fileFormats: ['XLSX', 'Google Sheets'],
     languages: ['Bahasa Indonesia'],
@@ -286,15 +286,15 @@ export const PRODUCTS: Product[] = [
       { src: '/static/previews/consignment-workbook.svg', alt: 'Ilustrasi tabel konsinyasi per outlet', illustrative: true }
     ],
     deliveryMethod: 'not_yet_available',
-    deliveryNote: demoDeliveryNote,
-    supportPolicy: demoSupport,
-    updatePolicy: demoUpdate,
+    deliveryNote: 'Belum ada kanal pembelian dan pengiriman yang aktif. Jangan menjual atau membagikan file ini sebagai produk final sebelum validasi, uji kualitas, dan alur pembayaran/pengiriman selesai.',
+    supportPolicy: 'Dukungan melalui support@holbery.biz.id setelah kanal dukungan dan produk resmi diluncurkan.',
+    updatePolicy: 'Kebijakan pembaruan akan diumumkan saat produk resmi dirilis.',
     status: 'draft',
     availability: 'not_available',
-    reviews: { quality: 'not_started', rights: 'not_started' },
+    reviews: { quality: 'in_progress', rights: 'not_started' },
     validationEvidence: [],
     channelListings: [],
-    tags: ['konsinyasi', 'titip jual', 'warung'],
+    tags: ['konsinyasi', 'titip jual', 'warung', 'setoran', 'stok'],
     createdAt: '2026-10-21',
     updatedAt: '2026-10-21'
   }
