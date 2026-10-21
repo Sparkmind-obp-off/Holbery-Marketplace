@@ -2,6 +2,10 @@
 
 A product-owned digital marketplace and distribution platform for original HOLBERY digital products, tools, templates, workbooks, guides, and software.
 
+## AI operating instructions
+
+Use [`MASTER-SYSTEM-PROMPT.md`](./MASTER-SYSTEM-PROMPT.md) as the operating prompt for research, product creation, validation, engineering, and release work. It follows the repository's evidence, security, product-purchase, and owner-approval gates.
+
 ## Project status
 
 **Phase 1 — static-first storefront: implemented and deployed as a preview.**
