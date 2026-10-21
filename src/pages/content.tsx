@@ -121,19 +121,17 @@ export const ContactPage: FC = () => (
       crumbs={[home, { label: 'Kontak' }]}
     />
     <Prose>
-      {SITE.supportEmail ? (
-        <>
-          <h2>Email dukungan</h2>
-          <p>
-            <a href={`mailto:${SITE.supportEmail}`}>{SITE.supportEmail}</a>
-          </p>
-        </>
-      ) : (
-        <div class="alert alert-info" role="status" id="contact-pending">
-          <strong>Kanal dukungan resmi belum dipublikasikan.</strong> Alamat email dan jam layanan akan dicantumkan di halaman ini
-          sebelum produk pertama dijual. Kami tidak menampilkan alamat kontak yang belum aktif dan dipantau.
-        </div>
-      )}
+      <h2>Email umum</h2>
+      <p><a href={`mailto:${SITE.generalEmail}`}>{SITE.generalEmail}</a></p>
+      <h2>Email dukungan</h2>
+      <p><a href={`mailto:${SITE.supportEmail}`}>{SITE.supportEmail}</a></p>
+      <h2>WhatsApp</h2>
+      <p>
+        <a href="https://wa.me/6285712658316" rel="nofollow">085712658316</a>
+        {' '}<span class="text-muted">— gunakan untuk pertanyaan produk dan dukungan pesanan.</span>
+      </p>
+      <h2>Identitas penjual</h2>
+      <p>{SITE.legalSellerName} — {SITE.legalSellerType}. HOLBERY adalah merek toko.</p>
       <h2>Apa yang bisa kami bantu</h2>
       <ul>
         <li>Pertanyaan sebelum membeli: isi produk, format, dan kompatibilitas.</li>
@@ -149,8 +147,8 @@ export const ContactPage: FC = () => (
       </ul>
       <h2>Keamanan</h2>
       <p>
-        HOLBERY tidak akan meminta pembayaran melalui pesan pribadi atau rekening perorangan. Laporan kerentanan keamanan sebaiknya
-        tidak dipublikasikan secara terbuka; lihat kebijakan keamanan di repositori proyek.
+        Untuk saat ini, pembelian hanya dapat dilakukan melalui kanal resmi yang ditautkan pada halaman produk setelah listing aktif
+        dan diverifikasi. Jangan mentransfer uang berdasarkan pesan yang mengaku dari HOLBERY tanpa memeriksa kanal penjualan resmi.
       </p>
     </Prose>
   </>
