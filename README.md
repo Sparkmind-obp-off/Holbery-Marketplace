@@ -4,7 +4,7 @@ A product-owned digital marketplace and distribution platform for original HOLBE
 
 ## AI operating instructions
 
-Use [`MASTER-SYSTEM-PROMPT-V2.md`](./MASTER-SYSTEM-PROMPT-V2.md) as the current operating prompt. V2 audits the existing product and canonical parent Commerce path before recommending new product or payment work. [`MASTER-SYSTEM-PROMPT.md`](./MASTER-SYSTEM-PROMPT.md) is retained as the executed v1 baseline.
+Use [`MASTER-SYSTEM-PROMPT-V3.md`](./MASTER-SYSTEM-PROMPT-V3.md) as the current operating prompt. V3 requires Shopee SEA MCP evidence before product decisions and follows the hierarchical portfolio in [`PRODUCT-PORTFOLIO-ARCHITECTURE.md`](./PRODUCT-PORTFOLIO-ARCHITECTURE.md). V2 and v1 are retained as historical baselines.
 
 ## Project status
 
