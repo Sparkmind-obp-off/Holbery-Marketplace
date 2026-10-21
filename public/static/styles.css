@@ -289,6 +289,8 @@ label { font-size: .8rem; font-weight: 600; color: var(--ink-2); display: block;
   .detail-pair { grid-template-columns: 1fr; gap: 0; }
   .filter-bar { flex-direction: column; align-items: stretch; }
   .field { min-width: 0; }
+  .field-grow { flex: 0 0 auto; }
+  .field-action .btn { width: 100%; }
   .footer-grid { grid-template-columns: 1fr; }
   .purchase-facts { grid-template-columns: 1fr 1fr; }
 }
