@@ -1,0 +1,31 @@
+{
+  "name": "holbery-marketplace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HOLBERY Marketplace — first-party storefront for original HOLBERY digital products.",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run validate:catalog && vite build",
+    "preview": "wrangler pages dev dist --ip 0.0.0.0 --port 3000",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "validate:catalog": "tsx scripts/validate-catalog.ts",
+    "check": "npm run typecheck && npm run test && npm run build",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name holbery-marketplace"
+  },
+  "dependencies": {
+    "hono": "^4.13.13",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261021.1",
+    "@hono/vite-build": "^1.11.1",
+    "@hono/vite-dev-server": "^0.26.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.4",
+    "vitest": "^3.2.7",
+    "wrangler": "^4.151.3"
+  }
+}

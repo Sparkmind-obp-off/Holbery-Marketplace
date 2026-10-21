@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "holbery-marketplace",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./dist"
+  // No D1 / KV / R2 bindings yet: the MVP storefront is static-first and
+  // has no demonstrated need for server-side storage (see docs/12-decisions.md).
+}
